@@ -63,6 +63,13 @@ The MEAN stack provides an end-to-end JavaScript solution for building modern we
 
 ---
 
+## Related Repos
+
+- [MERN](../MERN) — MongoDB/Express/React/Node learning repo, also planning a full-stack e-commerce build
+- [E-Commerce_Website](../E-Commerce_Website) — a separate planned e-commerce site (stack not yet decided)
+
+---
+
 ## Resources
 
 - [MongoDB Documentation](https://www.mongodb.com/docs/)
