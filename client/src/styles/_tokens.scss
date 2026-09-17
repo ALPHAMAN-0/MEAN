@@ -1,0 +1,48 @@
+/**
+ * Design tokens as CSS custom properties — no Tailwind, no component library.
+ * Swap these values and the whole app re-themes; add a UI kit later without
+ * unpicking anything.
+ */
+:root {
+  color-scheme: light dark;
+
+  --bg: #ffffff;
+  --surface: #f7f8fa;
+  --surface-hover: #eef0f4;
+  --border: #dfe3e9;
+  --fg: #131720;
+  --fg-muted: #5b6472;
+  --accent: #2563eb;
+  --accent-fg: #ffffff;
+  --danger: #b42318;
+  --success: #067647;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f14;
+    --surface: #141a22;
+    --surface-hover: #1c242e;
+    --border: #253040;
+    --fg: #e6edf3;
+    --fg-muted: #93a1b1;
+    --accent: #4b8bff;
+    --accent-fg: #06101f;
+    --danger: #ff6b5e;
+    --success: #43c08a;
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+  }
+}
