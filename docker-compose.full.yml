@@ -59,6 +59,11 @@ services:
       # Same origin through nginx, so the browser's Origin is the nginx one.
       CORS_ORIGINS: http://localhost:${WEB_PORT:-8080}
       SWAGGER_ENABLED: 'true'
+      # This demo is served over plain HTTP on localhost. A Secure cookie would be
+      # dropped by Safari (Chrome and Firefox make an exception for localhost), and
+      # you would appear to be logged out after every reload. Behind real TLS,
+      # delete this line.
+      COOKIE_SECURE: 'false'
     healthcheck:
       test:
         [

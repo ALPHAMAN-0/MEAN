@@ -14,7 +14,7 @@ import { env } from '../config/env.js'
 const base: CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
-  secure: env.isProduction,
+  secure: env.cookieSecure,
   path: env.REFRESH_COOKIE_PATH,
 }
 

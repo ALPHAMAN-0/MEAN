@@ -48,6 +48,11 @@ const EnvSchema = z.object({
   AUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(100),
 
   SWAGGER_ENABLED: z.enum(['true', 'false']).default('true'),
+
+  // Defaults to true in production. Set it explicitly when production-mode traffic
+  // is served over plain HTTP — a Secure cookie is simply dropped there, and the
+  // symptom (you are logged out on every reload) looks nothing like the cause.
+  COOKIE_SECURE: z.enum(['true', 'false']).optional(),
 })
 
 const parsed = EnvSchema.safeParse(process.env)
@@ -72,6 +77,7 @@ if (raw.NODE_ENV === 'production' && raw.JWT_ACCESS_SECRET.startsWith('dev-only'
 export const env = Object.freeze({
   ...raw,
   swaggerEnabled: raw.SWAGGER_ENABLED === 'true',
+  cookieSecure: raw.COOKIE_SECURE ? raw.COOKIE_SECURE === 'true' : raw.NODE_ENV === 'production',
   isProduction: raw.NODE_ENV === 'production',
   isTest: raw.NODE_ENV === 'test',
   // One place decides the allowlist, derived from CLIENT_PORT unless overridden.
