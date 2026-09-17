@@ -1,0 +1,25 @@
+meta {
+  name: Create task
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/tasks
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Try the API from Bruno",
+    "description": "status defaults to todo"
+  }
+}
+
+script:post-response {
+  bru.setVar("taskId", res.body.data.id)
+}

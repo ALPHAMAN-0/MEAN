@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    # Pinned, not ubuntu-latest: mongodb-memory-server's highest known Ubuntu
+    # mapping is 24, so a future `latest` bump could break the download.
+    runs-on: ubuntu-24.04
+
+    env:
+      HUSKY: 0 # git hooks are pointless in CI
+      MONGOMS_VERSION: 8.2.6
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # BEFORE npm ci: the mongod binary is fetched by mongodb-memory-server's
+      # postinstall, so a cache restored afterwards would never be used.
+      - name: Cache the mongod binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-${{ runner.os }}-${{ env.MONGOMS_VERSION }}
+
+      # No .env in CI, and none is needed: the server reads its test environment
+      # from server/vitest.config.ts, and nothing else here touches a database.
+      - run: npm ci
+
+      - name: Toolchain (node + typescript + vitest versions)
+        run: node scripts/check-toolchain.mjs
+
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  compose:
+    # Proves the database recipe itself: keyfile, rs.initiate, a writable primary,
+    # and that it survives a restart on an existing volume.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: docker compose up -d --wait
+      - name: Assert rs0 has a writable primary
+        run: |
+          docker compose exec -T mongo mongosh --quiet \
+            -u root -p devroot --authenticationDatabase admin \
+            'mongodb://127.0.0.1:27017/?directConnection=true' \
+            --eval 'const h = db.hello(); if (h.setName !== "rs0" || !h.isWritablePrimary) { quit(1) }'
+      - name: Restart on the existing volume (the stale-hostname trap)
+        run: |
+          docker compose down
+          docker compose up -d --wait
+      - if: always()
+        run: docker compose logs mongo mongo-init
+      - if: always()
+        run: docker compose down -v

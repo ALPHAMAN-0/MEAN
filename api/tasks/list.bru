@@ -1,0 +1,13 @@
+meta {
+  name: List tasks
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/tasks?page=1&pageSize=10&sort=-createdAt
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

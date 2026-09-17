@@ -1,0 +1,16 @@
+meta {
+  name: Refresh
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/refresh
+  body: none
+}
+
+docs {
+  Authenticated by the httpOnly cookie alone — no Authorization header.
+  Run it twice in a row and the second call still succeeds: each call rotates
+  the cookie. Replaying an OLD cookie is what triggers reuse detection.
+}

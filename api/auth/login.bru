@@ -1,0 +1,23 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+}
+
+body:json {
+  {
+    "email": "{{email}}",
+    "password": "{{password}}"
+  }
+}
+
+script:post-response {
+  // Captured for every other request in this collection. The refresh token is not
+  // here on purpose — it is an httpOnly cookie the client never sees.
+  bru.setVar("accessToken", res.body.data.accessToken)
+}

@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "angular.ng-template",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "mongodb.mongodb-vscode",
+    "ms-azuretools.vscode-docker"
+  ]
+}
