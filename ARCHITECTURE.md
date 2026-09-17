@@ -12,23 +12,23 @@ tags: [architecture, MEAN]
 
 ## Directory map
 
-| path                      | what lives there                                            |
-| ------------------------- | ----------------------------------------------------------- |
-| `shared/src`              | `@mean/shared`: envelope, pagination, auth and task schemas |
-| `server/src/config`       | zod-validated env, mongoose connection                      |
-| `server/src/lib`          | ApiError, response envelope, cookies, logger                |
-| `server/src/middleware`   | validate, authenticate/authorize, rate limit, errors, 404   |
-| `server/src/models`       | User, RefreshToken, Task                                    |
-| `server/src/modules`      | auth, tasks, users — service + controller + routes each     |
-| `server/src/routes`       | `/api/v1` router and the health probes                      |
-| `server/src/docs`         | OpenAPI document generated from the shared schemas          |
-| `server/test`             | vitest + supertest against an in-memory replica set         |
-| `client/src/app/core`     | auth store, interceptor, guards, API base                   |
-| `client/src/app/features` | auth screens, tasks screens                                 |
-| `docker-compose.yml`      | mongo + mongo-init + mongo-express (dev default)            |
-| `docker-compose.full.yml` | adds api + nginx web (everything containerized)             |
-| `deploy/nginx`            | SPA fallback and the `/api` proxy                           |
-| `scripts`                 | toolchain check, doctor, client scaffold, mongo init, smoke |
+| path                      | what lives there                                                        |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `shared/src`              | `@mean/shared`: envelope, pagination, auth and task schemas             |
+| `server/src/config`       | zod-validated env, mongoose connection                                  |
+| `server/src/lib`          | ApiError, response envelope, cookies, logger                            |
+| `server/src/middleware`   | validate, authenticate/authorize, rate limit, errors, 404               |
+| `server/src/models`       | User, RefreshToken, Task                                                |
+| `server/src/modules`      | auth, tasks, users — service + controller + routes each                 |
+| `server/src/routes`       | `/api/v1` router and the health probes                                  |
+| `server/src/docs`         | OpenAPI document generated from the shared schemas                      |
+| `server/test`             | vitest + supertest against an in-memory replica set                     |
+| `client/src/app/core`     | auth store, interceptor, guards, API base                               |
+| `client/src/app/features` | auth screens, tasks screens                                             |
+| `docker-compose.yml`      | mongo + mongo-init + mongo-express (dev default)                        |
+| `docker-compose.full.yml` | adds api + nginx web (everything containerized)                         |
+| `deploy/nginx`            | SPA fallback and the `/api` proxy                                       |
+| `scripts`                 | toolchain check, doctor, client scaffold, mongo init, full stack, smoke |
 
 ## Diagram
 

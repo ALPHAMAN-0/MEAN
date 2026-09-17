@@ -76,6 +76,8 @@ See `ARCHITECTURE.md` for the component map, `docs/auth-flow.md` for how session
 - **Never `localhost` for the API or the database** — Node resolves it to `::1` first, and the published port only binds IPv4.
 - The access token lives in memory only; the refresh token is an httpOnly cookie scoped to `/api/v1/auth`. A page reload silently refreshes, which is why you stay signed in.
 - Angular's Vitest-based `unit-test` builder is the v22 default but is still marked **experimental** upstream.
+- `make full` runs `NODE_ENV=production`, which **refuses the placeholder `JWT_ACCESS_SECRET`** on purpose. It mints an ephemeral one for that run and says so; use `npm run gen:secret` for one that survives a restart.
+- That same stack sets `COOKIE_SECURE=false`, because it serves production mode over plain HTTP, where a `Secure` cookie is silently dropped (Safari especially) — and the symptom, logged out on every reload, looks nothing like the cause. Behind real TLS, drop the override.
 
 ---
 

@@ -10,8 +10,6 @@ coverage/
 .angular/
 
 # Environment — .env.example is the only one that is committed
-.env
-.env.*
 !.env.example
 
 # Exactly one lockfile lives in this repo, at the root
@@ -31,3 +29,4 @@ yarn-error.log*
 .DS_Store
 .idea/
 *.swp
+config.bat
