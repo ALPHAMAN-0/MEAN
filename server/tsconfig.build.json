@@ -1,0 +1,12 @@
+{
+  // Emit-only project: src/ minus tests. `npm run build -w @mean/server` uses this.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
+}
