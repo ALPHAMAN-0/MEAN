@@ -41,8 +41,7 @@ smoke: ## Curl the whole auth + tasks flow against a running API
 	npm run smoke
 
 full: ## Build and run EVERYTHING in containers (nginx :8080 -> api -> mongo)
-	$(COMPOSE) -f docker-compose.full.yml up -d --build --wait
-	$(COMPOSE) -f docker-compose.full.yml ps
+	@bash scripts/full-stack-up.sh
 
 full-down: ## Stop the fully containerized stack
 	$(COMPOSE) -f docker-compose.full.yml down

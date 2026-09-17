@@ -4,15 +4,16 @@
 FROM node:22.23-bookworm-slim AS build
 WORKDIR /app
 
+# shared/ in full, not manifest-only: `npm ci` runs its prepare hook, which
+# compiles its sources. --ignore-scripts does not suppress it for workspace links.
 COPY package.json package-lock.json .npmrc ./
-COPY shared/package.json shared/
+COPY shared/ shared/
 COPY server/package.json server/
 COPY client/package.json client/
 RUN npm ci
 
-COPY shared/ shared/
 COPY client/ client/
-RUN npm run build -w @mean/shared && npm run build -w @mean/client
+RUN npm run build -w @mean/client
 
 FROM nginx:1.29-alpine AS runtime
 COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf

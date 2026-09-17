@@ -3,7 +3,9 @@
 #
 # Here the browser only ever talks to nginx, so the API is SAME-ORIGIN and CORS
 # does not participate at all. That is the point of the exercise.
-name: ${COMPOSE_PROJECT_NAME:-mean}-full
+# No `name:` here on purpose: COMPOSE_PROJECT_NAME from .env overrides it, so this
+# stack deliberately shares the project — and therefore the seeded database — with
+# `make up`. http://localhost:8080 shows the data you already have.
 
 services:
   mongo:
@@ -19,6 +21,16 @@ services:
     depends_on:
       mongo:
         condition: service_started
+
+  mongo-express:
+    extends:
+      file: docker-compose.yml
+      service: mongo-express
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
 
   api:
     build:
