@@ -30,11 +30,14 @@ check() {
 
 printf '\n  smoke test against %s\n\n' "$BASE"
 
-check "$(call -X POST "$BASE/auth/register" -d "{\"email\":\"$EMAIL\",\"password\":\"Password123!\",\"name\":\"Smoke\"}")" 201 'register'
+# printf, not an inline literal: an unquoted {"a":1,"b":2} is BRACE EXPANSION in
+# bash and silently becomes three separate arguments.
+REGISTER_BODY="$(printf '{"email":"%s","password":"Password123!","name":"Smoke"}' "$EMAIL")"
+check "$(call -X POST "$BASE/auth/register" -d "$REGISTER_BODY")" 201 'register'
 TOKEN="$(json 'j.data.accessToken')"
 
 check "$(call "$BASE/auth/me" -H "Authorization: Bearer $TOKEN")" 200 'authenticated /me'
-check "$(call -X POST "$BASE/tasks" -H "Authorization: Bearer $TOKEN" -d '{"title":"Smoke task"}')" 201 'create a task'
+check "$(call -X POST "$BASE/tasks" -H "Authorization: Bearer $TOKEN" -d "$(printf '{"title":"Smoke task"}')")" 201 'create a task'
 check "$(call "$BASE/tasks" -H "Authorization: Bearer $TOKEN")" 200 'list tasks'
 check "$(call -X POST "$BASE/auth/refresh")" 200 'refresh rotates the cookie'
 check "$(call -X POST "$BASE/auth/logout")" 204 'logout'

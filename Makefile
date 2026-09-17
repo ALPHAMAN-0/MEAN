@@ -35,7 +35,7 @@ seed: ## Load demo + admin users and sample tasks
 	npm run seed
 
 dev: ## Run the API and the Angular dev server on the host
-	npm run dev
+	@CLIENT_PORT="$$(grep -E '^CLIENT_PORT=' .env 2>/dev/null | cut -d= -f2)" npm run dev
 
 smoke: ## Curl the whole auth + tasks flow against a running API
 	npm run smoke

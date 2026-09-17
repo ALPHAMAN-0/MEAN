@@ -31,6 +31,23 @@ describe('the error contract', () => {
     await api().get('/api/v1/tasks?pageSize=9999').set(bearer(accessToken)).expect(400)
   })
 
+  it('treats malformed JSON as bad input, not a server error', async () => {
+    const res = await api()
+      .post('/api/v1/auth/login')
+      .set('content-type', 'application/json')
+      .send('{"email": broken')
+      .expect(400)
+    expect(res.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('rejects an oversized body with 413', async () => {
+    await api()
+      .post('/api/v1/auth/login')
+      .set('content-type', 'application/json')
+      .send(JSON.stringify({ email: 'a@b.co', password: 'x'.repeat(200_000) }))
+      .expect(413)
+  })
+
   it('renders an unknown route as a 404 envelope from the pathless handler', async () => {
     const res = await api().get('/api/v1/nope').expect(404)
     expect(res.body.error.code).toBe('NOT_FOUND')

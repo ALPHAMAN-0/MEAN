@@ -9,6 +9,25 @@ import { logger } from '../lib/logger.js'
  * The single terminal error renderer. Four arguments, or Express treats it as
  * ordinary middleware and never calls it.
  */
+interface BodyParserError extends Error {
+  type: string
+  status?: number
+  statusCode?: number
+}
+
+/**
+ * body-parser rejects with http-errors carrying a `type`. Only the parse failure
+ * is a SyntaxError — `entity.too.large` is a PayloadTooLargeError — so match on
+ * `type`, never on the constructor.
+ */
+function isBodyParserError(err: unknown): err is BodyParserError {
+  return (
+    err instanceof Error &&
+    typeof (err as Partial<BodyParserError>).type === 'string' &&
+    (err as BodyParserError).type.startsWith('entity.')
+  )
+}
+
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof ApiError) {
     res.status(err.status).json({
@@ -16,6 +35,22 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
         code: err.code,
         message: err.message,
         ...(err.details ? { details: err.details } : {}),
+      },
+    })
+    return
+  }
+
+  // Malformed JSON and oversized bodies arrive from express.json(). Without this
+  // they fall through to 500, which blames the server for the client's typo.
+  if (isBodyParserError(err)) {
+    const status = err.status ?? err.statusCode ?? 400
+    res.status(status >= 400 && status < 500 ? status : 400).json({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message:
+          err.type === 'entity.too.large'
+            ? 'Request body is too large'
+            : 'Request body is not valid JSON',
       },
     })
     return
