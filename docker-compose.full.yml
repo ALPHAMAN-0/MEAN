@@ -1,0 +1,77 @@
+# The whole stack in containers — the production-shaped topology.
+#   make full   ->  http://localhost:8080
+#
+# Here the browser only ever talks to nginx, so the API is SAME-ORIGIN and CORS
+# does not participate at all. That is the point of the exercise.
+name: ${COMPOSE_PROJECT_NAME:-mean}-full
+
+services:
+  mongo:
+    extends:
+      file: docker-compose.yml
+      service: mongo
+
+  mongo-init:
+    extends:
+      file: docker-compose.yml
+      service: mongo-init
+    # `extends` does NOT copy depends_on, so it is restated here.
+    depends_on:
+      mongo:
+        condition: service_started
+
+  api:
+    build:
+      context: . # the repo root, so npm ci can see the lockfile and shared/
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        # Without this, `up --wait` never waits for the one-shot: Compose only
+        # honours service_completed_successfully when a service declares it.
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      HOST: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # One hop: nginx. Not `true`, which would let clients spoof X-Forwarded-For.
+      TRUST_PROXY: '1'
+      # Real replica-set discovery from inside the compose network.
+      MONGO_URI: mongodb://${MONGO_APP_USERNAME:-mean_app}:${MONGO_APP_PASSWORD:-devapp}@mongo:27017/${MONGO_DB:-meandb}?authSource=${MONGO_DB:-meandb}&replicaSet=rs0
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env - run npm run gen:secret}
+      JWT_ISSUER: ${JWT_ISSUER:-mean-boilerplate}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-mean-client}
+      # Same origin through nginx, so the browser's Origin is the nginx one.
+      CORS_ORIGINS: http://localhost:${WEB_PORT:-8080}
+      SWAGGER_ENABLED: 'true'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '${WEB_PORT:-8080}:8080'
+
+volumes:
+  mongo-data:
+  mongo-config:
+  mongo-keyfile:

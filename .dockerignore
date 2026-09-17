@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/out-tsc
+**/coverage
+client/.angular
+.git
+.github
+.husky
+.vscode
+*.md
+!README.md
+.env
+.env.*
+!.env.example

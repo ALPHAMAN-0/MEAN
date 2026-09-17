@@ -1,0 +1,104 @@
+# Dev default: the DATABASE runs in Docker, the apps run on your host.
+#   make up    -> mongo (single-node replica set + auth) + mongo-express
+#   make dev   -> api :3000 and Angular :4200 on the host, with hot reload
+name: ${COMPOSE_PROJECT_NAME:-mean}
+
+services:
+  mongo:
+    image: mongo:8.0 # NOT mongo:8 — that floats onto the next minor
+    # Load-bearing: the replica-set config stores this hostname. Without it Docker
+    # assigns the container's short ID, which changes on every recreate, and the set
+    # never elects a primary again after `make down && make up`.
+    hostname: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-devroot}
+    ports:
+      - '${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+      - mongo-keyfile:/etc/mongo-keyfile
+    # MongoDB requires internal cluster auth whenever replication AND authorization
+    # are both on — single-node is NOT exempt. The keyfile is minted here, inside a
+    # named volume, so no secret is ever committed or bind-mounted.
+    # Overriding the entrypoint keeps us root: the stock one only drops to the mongodb
+    # user when argv[0] starts with "mongo".
+    entrypoint:
+      - bash
+      - -c
+      - |
+        set -euo pipefail
+        # No shell variables here on purpose: Compose has its own escaping rules and a
+        # keyfile path is not worth the escaping ambiguity.
+        if [ ! -f /etc/mongo-keyfile/keyfile ]; then
+          # No openssl: it is only transitively present in this image.
+          head -c 756 /dev/urandom | base64 | tr -d '\n' > /etc/mongo-keyfile/keyfile
+          echo "[mongo] generated replica-set keyfile"
+        fi
+        chmod 400 /etc/mongo-keyfile/keyfile
+        chown mongodb:mongodb /etc/mongo-keyfile/keyfile
+        exec docker-entrypoint.sh mongod --replSet rs0 --keyFile /etc/mongo-keyfile/keyfile --bind_ip_all
+    healthcheck:
+      # The probe MUST throw. mongosh exits 0 when an expression is merely falsy, so a
+      # bare `db.hello().isWritablePrimary` would report healthy against the temporary
+      # standalone mongod the entrypoint runs during initdb — and dependants would
+      # start against a server that is about to shut down.
+      test:
+        [
+          'CMD',
+          'mongosh',
+          '--quiet',
+          '--username=${MONGO_ROOT_USERNAME:-root}',
+          '--password=${MONGO_ROOT_PASSWORD:-devroot}',
+          '--authenticationDatabase=admin',
+          'mongodb://127.0.0.1:27017/?directConnection=true',
+          '--eval',
+          "const h = db.hello(); if (h.setName !== 'rs0' || !h.isWritablePrimary) { quit(1) }",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s # first boot pulls the image, runs initdb, then rs.initiate
+
+  mongo-init:
+    image: mongo:8.0
+    restart: 'no' # a one-shot; retrying it just hides which phase failed
+    depends_on:
+      mongo:
+        # service_started, not service_healthy: the healthcheck only goes green AFTER
+        # this service has initiated the set, so waiting for it would deadlock.
+        condition: service_started
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-root}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-devroot}
+      MONGO_DB: ${MONGO_DB:-meandb}
+      MONGO_APP_USERNAME: ${MONGO_APP_USERNAME:-mean_app}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:-devapp}
+    volumes:
+      - ./scripts/mongo-init.sh:/scripts/mongo-init.sh:ro
+    entrypoint: ['bash', '/scripts/mongo-init.sh']
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        # Also the reason `docker compose up --wait` waits for the one-shot at all:
+        # Compose only honours this condition when some service declares it.
+        condition: service_completed_successfully
+    ports:
+      - '${MONGO_EXPRESS_PORT:-8081}:8081'
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-devroot}@mongo:27017/?authSource=admin&replicaSet=rs0
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-devadmin}
+
+volumes:
+  mongo-data:
+  mongo-config:
+  mongo-keyfile:
