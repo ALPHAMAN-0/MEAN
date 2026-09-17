@@ -1,0 +1,8 @@
+**/dist
+**/out-tsc
+**/coverage
+client/.angular
+package-lock.json
+
+# Your documentation contract — not ours to restyle.
+Instruction.md

@@ -1,28 +1,33 @@
-# Angular specific
-/dist/
-/out-tsc/
-/tmp/
-/coverage/
-/e2e/test-output/
-/.angular/
+# Dependencies — un-anchored so nested workspaces are covered too
+node_modules/
+
+# Build output
+dist/
+out-tsc/
+tmp/
+coverage/
+*.tsbuildinfo
 .angular/
 
-# Node modules and dependency files
-/node_modules/
-/package-lock.json
-/yarn.lock
+# Environment — .env.example is the only one that is committed
+.env
+.env.*
+!.env.example
 
-# Environment files
-/.env
-
-# Angular CLI and build artefacts
-/.angular-cli.json
-/.ng/
-
-# TypeScript cache
-*.tsbuildinfo
+# Exactly one lockfile lives in this repo, at the root
+client/package-lock.json
+server/package-lock.json
+shared/package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# OS / editor
+.DS_Store
+.idea/
+*.swp
