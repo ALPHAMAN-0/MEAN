@@ -2,6 +2,18 @@
 
 A learning repository for the MEAN stack -- MongoDB, Express.js, Angular, and Node.js. This repository is dedicated to exploring full-stack web development using this JavaScript-based technology stack.
 
+## Architecture / How it Works
+
+```mermaid
+flowchart LR
+    A[User] --> B[MEAN]
+    B --> C{Logic}
+    C --> D[(Data)]
+    C --> E[Output]
+    D --> C
+```
+
+
 ---
 
 ## Contents
