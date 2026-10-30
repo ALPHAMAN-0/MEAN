@@ -29,4 +29,3 @@ yarn-error.log*
 .DS_Store
 .idea/
 *.swp
-config.bat
